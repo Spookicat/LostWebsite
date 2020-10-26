@@ -1,57 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>I was lost once too</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>I was lost once too</title>
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Open+Sans">
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 
+    
+    <script src="js/three.js"></script>
+    <script src="js/gsap.min.js"></script>
+    <script src="js/three_gsap.js"></script>
+
     <div id="parent">
-        <form id="mysteryform" onsubmit="processText()" autocomplete="off">
+        <form id="mysteryform" autocomplete="off">
             <input id="mysteriousbox" type="text" />
-            <input type ="submit" style="display: none" />
         </form>
     </div>
 
-    <script src="js/three.js"></script>
-    <script src="js/gsap.min.js"></script>
-
     <script>
-        function proccessText()
+        var submitting = false;
+
+        function processText(e)
         {
-            var phrase = document.getElementById("mysteriousbox").value;
+            if(e.preventDefault) e.preventDefault();
+
+            var phrase = document.getElementById("mysteriousbox").value.toLowerCase();
             var form = this;
+            var font = 'fonts/Oswald_Medium.typeface.json';
+            var scary = false;
             var text;
 
-            switch(phrase){
-                case "Spookicat":
-                    text = "Yes.";
-                    break;
-                default:
-                    text = "You're lost aren't you?"
+            if(!submitting){
+                switch(phrase){
+                    case "spookicat":
+                        text = "Yes.";
+                        submitting = true;
+                        break;
+                    case "please kill me":
+                        text = "Okay.";
+                        submitting = true;
+                        break;
+                    default:
+                        text = "You're lost aren't you?"
+                        submitting = true;
+                }
+                displayResponse(text, font, scary);
             }
-            
+            return false;
         }
 
-        function displayResponse(text)
-        {
+        var form = document.getElementById('mysteryform');
 
+        if(form.attachEvent){
+            form.attachEvent("submit", processText);
+        }   else{
+            form.addEventListener("submit", processText);
+        }
+
+        function displayResponse(displayText, textFont, scary)
+        {
+            var loader = new THREE.FontLoader();
+            loader.load(textFont, function (font) {
+
+            var textGeo = new THREE.TextGeometry(displayText, {
+                font: font,
+                size: 10,
+                height: 1,
+                curveSegments: 12,
+            });
+
+            textGeo.computeBoundingBox();
+			//textGeo.computeVertexNormals();
+
+            var centerOffset = - 0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
+
+            var textMat = new THREE.MeshLambertMaterial({color: 0xFFFFFF, emissive: 0x2a2a2a, emissiveIntensity: .5});
+            var textMesh = new THREE.Mesh(textGeo, textMat);
+            textMesh.name = "text";
+            textMesh.position.z = -200;
+            textMesh.position.x = centerOffset;
+            textMesh.position.y = -28;
+
+            textMesh.rotation.x = 0;
+			textMesh.rotation.y = Math.PI * 2;
+            textMesh.material.transparent = true;
+            textMesh.material.opacity = 1;
+
+            scene.add(textMesh);
+
+            animateText(textMesh);
+        });
+        }
+
+        function animateText(textMesh)
+        {
+            var newX = Math.floor(Math.random() * 400) - 200;
+            var newY = Math.floor(Math.random() * 80);
+            var newZ = Math.floor(Math.random() * 200) - 400;
+            var duration = 1;
+
+            var tl = gsap.timeline({onComplete: removeEntity, onCompleteParams:["text"]});
+            tl.from(textMesh.material, duration+1, {opacity: 0, ease:"slow"});
+            tl.from(textMesh.position, duration, {x: newX, z: newZ, ease:"power2"},0);
+            tl.from(textMesh.position, duration-0.5, {y: newY, ease:"power1"},0);
+
+            var n = displayText.length/10;
+            tl.to(textMesh.material, 1, {opacity:0}), '+=${n}';
+        }
+
+        function removeEntity(object)
+        {
+            var selectedObject = scene.getObjectByName(object);
+            scene.remove( selectedObject );
+            submitting = false;
+            animate();
         }
 
         var scene = new THREE.Scene();
 
-        var camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
+        var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    
+        //loadFont('Oswald-Medium.json');
+        //refreshText();
+
+        var renderer = new THREE.WebGLRenderer({ antialias: true });
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+        
+        var light = new THREE.AmbientLight(0xffffff, 0.3);
+        scene.add(light);
+        
+        var light2 = new THREE.PointLight(0xdddddd, 0.5);
+        light2.position.y = 250;
+        scene.add(light2);
+
+        var displayText = "I wished for you to come and it never came true.";
+
         camera.position.z = 5;
-
-        var renderer = new THREE.WebGLRenderer({antialias: true});
-        renderer.setClearColor("#000000");
-        renderer.setSize(window.innerWidth, window.innerHeight);
-
-        document.body.appendChild(renderer.domElement);
 
         window.addEventListener('resize', () => {
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -60,15 +149,30 @@
             camera.updateProjectionMatrix();
         })
 
-        var render = function() {
-            requestAnimationFrame(render);
-
-
-            renderer.render(scene, camera);
+        /*var loadFont = function (typeface)
+        {
+            var loader = new.THREE.FontLoader();
+            var font = loader.parse(typeface);
         }
 
-        render();
+        var refreshText = function ()
+        {
+            var geometry = new THREE.TextGeometry('Goodbye', {font: font, size: 120, height: 10, material: 0, bevelThickness: 1, extrudeMaterial: 1});
 
+            var material = new Three.MeshLambertMaterial({color: 0xFFFFFF});
+            var textMesh = new THREE.Mesh(geometry, material);
+
+
+            scene.add(textMesh);
+        }*/
+
+        var animate = function () {
+            requestAnimationFrame( animate );
+            renderer.render(scene, camera);
+        }
+    
+        animate();
     </script>
+
 </body>
 </html>
