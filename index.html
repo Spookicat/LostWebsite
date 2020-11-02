@@ -13,7 +13,7 @@
     
     <script src="js/three.js"></script>
     <script src="js/gsap.min.js"></script>
-    <script src="js/three_gsap.js"></script>
+    <script src="js/Tone.js"></script>
 
     <div id="parent">
         <form id="mysteryform" autocomplete="off">
@@ -22,7 +22,39 @@
     </div>
 
     <script>
-        var submitting = false;
+        var camera, scene, renderer;
+        var submitting;
+        var displayText;
+
+        var funTones = ["C3","D3","E3","F3","G3","A3","B3"];
+        var scareTones =["C#2","D#2","F#2","G#1","A#1"];
+
+        const panner = new Tone.Panner3D();
+        panner.set({panningModel: "HRTF"});
+
+        const funSynth = new Tone.Synth();
+        const scareSynth = new Tone.DuoSynth();
+
+        // funSynth effects
+        //const autoPanner = new Tone.AutoPanner("2n").start();
+        const feedbackDelay = new Tone.FeedbackDelay(.475, 0.5);
+        const reverb = new Tone.Reverb(4.5);
+
+        // scareSynth effects
+        const crusher = new Tone.BitCrusher(4);
+        const distortion = new Tone.Distortion(0.1);
+        const scareVerb = new Tone.JCReverb(0.8);
+        const EQ = new Tone.EQ3(-3, -5, -10);
+
+
+        funSynth.envelope.set({attack: 0.1})
+        feedbackDelay.set( {wet: 0.5} );
+        reverb.set( {wet: 0.7} );
+        
+        scareSynth.set( {volume : -25, detune: -3, voice1: {detune: -5}, voice2: {detune: -9}} );
+        
+        funSynth.chain(feedbackDelay, reverb, panner, Tone.Destination);
+        scareSynth.chain(crusher, distortion, scareVerb, EQ, Tone.Destination);
 
         function processText(e)
         {
@@ -37,18 +69,19 @@
             if(!submitting){
                 switch(phrase){
                     case "spookicat":
-                        text = "Yes.";
+                        displayText = "You've heard it too?";
                         submitting = true;
                         break;
                     case "please kill me":
-                        text = "Okay.";
+                        displayText = "Okay.";
                         submitting = true;
+                        scary = true;
                         break;
                     default:
-                        text = "You're lost aren't you?"
+                        displayText = "You're lost aren't you?"
                         submitting = true;
                 }
-                displayResponse(text, font, scary);
+                displayResponse(font, scary);
             }
             return false;
         }
@@ -61,7 +94,7 @@
             form.addEventListener("submit", processText);
         }
 
-        function displayResponse(displayText, textFont, scary)
+        function displayResponse( textFont, scary )
         {
             var loader = new THREE.FontLoader();
             loader.load(textFont, function (font) {
@@ -72,13 +105,13 @@
                 height: 1,
                 curveSegments: 12,
             });
-
+            
             textGeo.computeBoundingBox();
 			//textGeo.computeVertexNormals();
 
             var centerOffset = - 0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
 
-            var textMat = new THREE.MeshLambertMaterial({color: 0xFFFFFF, emissive: 0x2a2a2a, emissiveIntensity: .5});
+            var textMat = new THREE.MeshPhongMaterial({color: 0xFFFFFF, emissive: 0x2a2a2a, emissiveIntensity: .5});
             var textMesh = new THREE.Mesh(textGeo, textMat);
             textMesh.name = "text";
             textMesh.position.z = -200;
@@ -92,16 +125,25 @@
 
             scene.add(textMesh);
 
-            animateText(textMesh);
+            animateText(textMesh, scary);
         });
         }
 
-        function animateText(textMesh)
+        function animateText(textMesh, scary)
         {
             var newX = Math.floor(Math.random() * 400) - 200;
             var newY = Math.floor(Math.random() * 80);
             var newZ = Math.floor(Math.random() * 200) - 400;
             var duration = 1;
+
+            if (scary)
+            {
+                playScareSound();
+            }
+            else
+            {
+                playFunSound(newX, newY, newZ);
+            }
 
             var tl = gsap.timeline({onComplete: removeEntity, onCompleteParams:["text"]});
             tl.from(textMesh.material, duration+1, {opacity: 0, ease:"slow"});
@@ -120,57 +162,56 @@
             animate();
         }
 
-        var scene = new THREE.Scene();
-
-        var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    
-        //loadFont('Oswald-Medium.json');
-        //refreshText();
-
-        var renderer = new THREE.WebGLRenderer({ antialias: true });
-		renderer.setSize( window.innerWidth, window.innerHeight );
-		document.body.appendChild( renderer.domElement );
-        
-        var light = new THREE.AmbientLight(0xffffff, 0.3);
-        scene.add(light);
-        
-        var light2 = new THREE.PointLight(0xdddddd, 0.5);
-        light2.position.y = 250;
-        scene.add(light2);
-
-        var displayText = "I wished for you to come and it never came true.";
-
-        camera.position.z = 5;
-
-        window.addEventListener('resize', () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-
-            camera.updateProjectionMatrix();
-        })
-
-        /*var loadFont = function (typeface)
+        function playFunSound(x, y, z)
         {
-            var loader = new.THREE.FontLoader();
-            var font = loader.parse(typeface);
+            panner.setPosition(x/100,1,0.5)
+            funSynth.triggerAttackRelease(funTones[Math.floor(Math.random() * 7)], "16n");
         }
 
-        var refreshText = function ()
+        function playScareSound()
         {
-            var geometry = new THREE.TextGeometry('Goodbye', {font: font, size: 120, height: 10, material: 0, bevelThickness: 1, extrudeMaterial: 1});
+            scareSynth.triggerAttackRelease(scareTones[Math.floor(Math.random() * 5)], "3n");
+        }
 
-            var material = new Three.MeshLambertMaterial({color: 0xFFFFFF});
-            var textMesh = new THREE.Mesh(geometry, material);
+        function init()
+        {
+            scene = new THREE.Scene();
 
+            camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+            camera.position.z = 5;
 
-            scene.add(textMesh);
-        }*/
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( renderer.domElement );
+            
+            var light = new THREE.AmbientLight(0xffffff, 0.3);
+            scene.add(light);
+            
+            var light2 = new THREE.PointLight(0xdddddd, 0.5);
+            light2.position.y = 250;
+            scene.add(light2);
+
+            submitting = false;
+            
+            window.addEventListener('resize', () => {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight;
+
+                camera.updateProjectionMatrix();
+            })
+        }
 
         var animate = function () {
             requestAnimationFrame( animate );
+
+            render();
+        }
+
+        function render() {
             renderer.render(scene, camera);
         }
     
+        init();
         animate();
     </script>
 
