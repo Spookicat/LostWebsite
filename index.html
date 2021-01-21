@@ -82,6 +82,8 @@
             var phrase = document.getElementById("mysteriousbox").value.toLowerCase();
             var form = this;
             var font = 'fonts/Oswald_Medium.typeface.json';
+            var redirect = false;
+            var url = "";
             var scary = false;
             var text;
 
@@ -90,6 +92,8 @@
                     case "spookicat":
                         displayText = "You've heard it too?";
                         submitting = true;
+                        redirect = true;
+                        url = "https://soundcloud.com/spookicat";
                         break;
                     case "please kill me":
                         font = 'fonts/DOS_Win_Regular.typeface.json';
@@ -103,7 +107,7 @@
                         displayText = "You're lost aren't you?"
                         submitting = true;
                 }
-                displayResponse(font, scary);
+                displayResponse(font, scary, redirect, url);
             }
             return false;
         }
@@ -116,7 +120,7 @@
             form.addEventListener("submit", processText);
         }
 
-        function displayResponse( textFont, scary )
+        function displayResponse( textFont, scary, redirect, url )
         {
             var loader = new THREE.FontLoader();
             loader.load(textFont, function (font) {
@@ -157,11 +161,11 @@
 
                 scene.add(textMesh);
 
-                animateText(textMesh, scary);
+                animateText(textMesh, scary, redirect, url);
             });
         }
 
-        function animateText(textMesh, scary)
+        function animateText(textMesh, scary, redirect, url)
         {
             var duration = 1;
             if (scary)
@@ -188,6 +192,16 @@
 
             var n = displayText.length/10;
             tl.to(textMesh.material, 1, {opacity:0}), '+=${n}';
+
+            if(redirect)
+            {
+                gsap.delayedCall(duration + n + 0.5, changeURL, [ url ]);
+            }
+        }
+
+        function changeURL(url)
+        {
+            window.location.replace(url);
         }
 
         function removeEntity(object)
