@@ -77,8 +77,7 @@
                 Tone.start();
             }
             if(e.preventDefault) e.preventDefault();
-            form = document.getElementById('mysteryform');
-            form.focus();
+            document.getElementById("mysteriousbox").blur();
 
             var phrase = document.getElementById("mysteriousbox").value.toLowerCase();
             var form = this;
