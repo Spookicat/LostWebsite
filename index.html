@@ -24,7 +24,7 @@
 
     <div id="parent">
         <form id="mysteryform" autocomplete="off">
-            <input id="mysteriousbox" type="text" onsubmit="blur()"/>
+            <input id="mysteriousbox" type="text" />
         </form>
     </div>
 
@@ -72,10 +72,13 @@
 
         function processText(e)
         {
+            
             if(Tone.context.state != 'running'){
                 Tone.start();
             }
             if(e.preventDefault) e.preventDefault();
+            form = document.getElementById('mysteryform');
+            form.focus();
 
             var phrase = document.getElementById("mysteriousbox").value.toLowerCase();
             var form = this;
