@@ -43,7 +43,7 @@
         var funTones = ["C3","D3","E3","F3","G3","A3","B3"];
         var scareTones =["C#2","D#2","F#2","G#1","A#1"];
 
-        const timeDelay = 0.50;
+        const timeDelay = 1;
 
         //const panner = new Tone.Panner3D();
         //panner.set({panningModel: "HRTF"});
@@ -197,7 +197,7 @@
 
             if(redirect)
             {
-                gsap.delayedCall(duration + n + 0.5, changeURL, [ url ]);
+                gsap.delayedCall(duration + n + + timeDelay + 0.5, changeURL, [ url ]);
             }
         }
 
