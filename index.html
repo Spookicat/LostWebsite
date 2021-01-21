@@ -10,7 +10,6 @@
 </head>
 <body>
 
-    
     <script src="lib/three.js"></script>
     <script src="lib/gsap.min.js"></script>
     <script src="lib/Tone.js"></script>
@@ -28,12 +27,14 @@
         </form>
     </div>
 
-    <script>
+    <script type="module">
         var camera, scene, renderer;
-        var shaderTime = 0;
-        var rgbParams, rgbPass;
-        var filmParams, filmPass;
-        var renderPass, copyPass;
+        var composer;
+		var shaderTime = 0;
+		var rgbParams, rgbPass;
+		var filmParams, filmPass;
+		var renderPass, copyPass;
+
         var submitting;
         var displayText;
 
@@ -54,7 +55,7 @@
         // scareSynth effects
         const crusher = new Tone.BitCrusher(4);
         const distortion = new Tone.Distortion(0.1);
-        const scareVerb = new Tone.JCReverb(0.8);
+        //const scareVerb = new Tone.JCReverb(0.8);
         const EQ = new Tone.EQ3(-3, -5, -10);
 
 
@@ -62,10 +63,10 @@
         feedbackDelay.set( {wet: 0.5} );
         reverb.set( {wet: 0.7} );
         
-        scareSynth.set( {volume : -20, detune: -3, voice1: {detune: -5}, voice2: {detune: -9}} );
+        scareSynth.set( {volume : -18, detune: -3, voice1: {detune: -5}, voice2: {detune: -9}} );
         
         funSynth.chain(feedbackDelay, reverb, Tone.Destination);
-        scareSynth.chain(crusher, distortion, scareVerb, EQ, Tone.Destination);
+        scareSynth.chain(crusher, distortion, reverb, EQ, Tone.Destination);
 
         function processText(e)
         {
@@ -92,6 +93,8 @@
                         submitting = true;
                         scary = true;
                         break;
+                    case "something":
+                        return;
                     default:
                         displayText = "You're lost aren't you?"
                         submitting = true;
@@ -117,7 +120,7 @@
                 var textGeo = new THREE.TextGeometry(displayText, {
                     font: font,
                     size: 10,
-                    height: 1,
+                    height: 0.1,
                     curveSegments: 12,
                 });
                 
@@ -129,9 +132,11 @@
 
                 if(scary)
                 {
-                    textMat = new THREE.MeshPhongMaterial({color: 0xFFFF00, emissive: 0x2a2a2a, emissiveIntensity: .5});
+                    enableShaders();
+                    textMat = new THREE.MeshPhongMaterial({color: 0xFFFF00, emissive: 0x2a2a2a, emissiveIntensity: .5});     
                 }
                 else{
+                    disableShaders();
                     textMat = new THREE.MeshPhongMaterial({color: 0xFFFFFF, emissive: 0x2a2a2a, emissiveIntensity: .5});
                 }
 
@@ -154,18 +159,22 @@
 
         function animateText(textMesh, scary)
         {
-            var newX = Math.floor(Math.random() * 400) - 200;
-            var newY = Math.floor(Math.random() * 80);
-            var newZ = Math.floor(Math.random() * 200) - 400;
             var duration = 1;
-
             if (scary)
             {
+                var newX = textMesh.position.x;
+                var newY = textMesh.position.y - 10;
+                var newZ = textMesh.position.z - 50;
+            
                 playScareSound();
             }
             else
             {
-                playFunSound(newX, newY, newZ);
+                var newX = Math.floor(Math.random() * 400) - 200;
+                var newY = Math.floor(Math.random() * 80);
+                var newZ = Math.floor(Math.random() * 200) - 400;
+
+                playFunSound();
             }
 
             var tl = gsap.timeline({onComplete: removeEntity, onCompleteParams:["text"]});
@@ -185,7 +194,7 @@
             animate();
         }
 
-        function playFunSound(x, y, z)
+        function playFunSound()
         {
             funSynth.triggerAttackRelease(funTones[Math.floor(Math.random() * 7)], "16n");
         }
@@ -207,15 +216,29 @@
             renderer.setSize( window.innerWidth, window.innerHeight );
             document.body.appendChild( renderer.domElement );
 
-            // Post Processing
-            // Creating Shader Passes
-            renderPass = new THREE.RenderPass(scene, camera);
-            rgbPass = new THREE.ShaderPass(THREE.RGBShiftShader);
-            filmPass = new THREE.ShaderPass(THREE.FilmShader);
-            copyPass = new THREE.ShaderPass(THREE.CopyShader);
+            //POST PROCESSING
+			//Create Shader Passes
+			renderPass = new THREE.RenderPass(scene, camera);
+			rgbPass = new THREE.ShaderPass(THREE.RGBShiftShader);
+			filmPass = new THREE.ShaderPass(THREE.FilmShader);
+			copyPass = new THREE.ShaderPass(THREE.CopyShader);
 
-            // set shader uniform
-            filmPass.uniforms.grayscale.value = 0;
+			//set shader uniforms
+			filmPass.uniforms.grayscale.value = 0;
+
+            // init shader params
+            rgbParams = {
+                show: false,
+                amount: 0.0014,
+                angle: 1
+            };
+
+            filmParams = {
+                show: false,
+                count: 4096,
+                sIntensity: 0.6,
+                nIntensity: 1
+            }
             
             // init Ambient Light
             var light = new THREE.AmbientLight(0xffffff, 0.3);
@@ -230,7 +253,10 @@
             // # gatekeeps user input submission #
             //  ----------------------------------
             submitting = false;
-            
+
+            onToggleShaders();
+            onParamsChange();
+
             window.addEventListener('resize', () => {
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 camera.aspect = window.innerWidth / window.innerHeight;
@@ -239,14 +265,63 @@
             })
         }
 
+        function enableShaders()
+        {
+            rgbParams.show = true;
+            filmParams.show = true;
+
+            onToggleShaders();
+        }
+
+        function disableShaders()
+        {
+            rgbParams.show = false;
+            filmParams.show = false;
+
+            onToggleShaders();
+        }
+
+        function onParamsChange() {
+
+            //copy gui params into shader uniforms
+            rgbPass.uniforms['angle'].value = rgbParams.angle * Math.PI;
+            rgbPass.uniforms['amount'].value = rgbParams.amount;
+
+            filmPass.uniforms['sCount'].value = filmParams.count;
+            filmPass.uniforms['sIntensity'].value = filmParams.sIntensity;
+            filmPass.uniforms['nIntensity'].value = filmParams.nIntensity;
+        }
+
+        function onToggleShaders() {
+
+            //Add Shader Passes to Composer
+            //order is important 
+            composer = new THREE.EffectComposer(renderer);
+            composer.addPass(renderPass);
+
+            if (filmParams.show) {
+                composer.addPass(filmPass);
+            }
+
+            if (rgbParams.show) {
+                composer.addPass(rgbPass);
+            }
+
+            composer.addPass(copyPass);
+            copyPass.renderToScreen = true;
+        }
+
         var animate = function () {
+            shaderTime += 0.1;
+			filmPass.uniforms['time'].value = shaderTime;
+
             requestAnimationFrame( animate );
 
             render();
         }
 
         function render() {
-            renderer.render(scene, camera);
+            composer.render(0.1);
         }
     
         init();
