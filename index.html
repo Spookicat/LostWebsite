@@ -43,6 +43,8 @@
         var funTones = ["C3","D3","E3","F3","G3","A3","B3"];
         var scareTones =["C#2","D#2","F#2","G#1","A#1"];
 
+        const timeDelay = 0.50;
+
         //const panner = new Tone.Panner3D();
         //panner.set({panningModel: "HRTF"});
 
@@ -186,9 +188,9 @@
             }
 
             var tl = gsap.timeline({onComplete: removeEntity, onCompleteParams:["text"]});
-            tl.from(textMesh.material, duration+1, {opacity: 0, ease:"slow"});
-            tl.from(textMesh.position, duration, {x: newX, z: newZ, ease:"power2"},0);
-            tl.from(textMesh.position, duration-0.5, {y: newY, ease:"power1"},0);
+            tl.from(textMesh.material, duration+1, {opacity: 0, ease:"slow"}, timeDelay);
+            tl.from(textMesh.position, duration, {x: newX, z: newZ, ease:"power2"}, timeDelay);
+            tl.from(textMesh.position, duration-0.5, {y: newY, ease:"power1"}, timeDelay);
 
             var n = displayText.length/10;
             tl.to(textMesh.material, 1, {opacity:0}), '+=${n}';
@@ -214,12 +216,12 @@
 
         function playFunSound()
         {
-            funSynth.triggerAttackRelease(funTones[Math.floor(Math.random() * 7)], "16n", Tone.context.currentTime);
+            funSynth.triggerAttackRelease(funTones[Math.floor(Math.random() * 7)], "16n", Tone.context.currentTime + timeDelay);
         }
 
         function playScareSound()
         {
-            scareSynth.triggerAttackRelease(scareTones[Math.floor(Math.random() * 5)], "3n", Tone.context.currentTime);
+            scareSynth.triggerAttackRelease(scareTones[Math.floor(Math.random() * 5)], "3n", Tone.context.currentTime + timeDelay);
         }
 
         function init()
