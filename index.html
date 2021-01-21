@@ -19,6 +19,7 @@
     <script src="lib/postprocessing/ShaderPass.js"></script>
     <script src="lib/shaders/CopyShader.js"></script>
     <script src="lib/shaders/FilmShader.js"></script>
+    <script src="lib/shaders/FXAAShader.js"></script>
     <script src="lib/shaders/RGBShiftShader.js"></script>
 
     <div id="parent">
@@ -33,7 +34,8 @@
 		var shaderTime = 0;
 		var rgbParams, rgbPass;
 		var filmParams, filmPass;
-		var renderPass, copyPass;
+        var renderPass, copyPass;
+        var fxaaPass;
 
         var submitting;
         var displayText;
@@ -142,9 +144,9 @@
 
                 var textMesh = new THREE.Mesh(textGeo, textMat);
                 textMesh.name = "text";
-                textMesh.position.z = -200;
+                textMesh.position.z = -170;
                 textMesh.position.x = centerOffset;
-                textMesh.position.y = -28;
+                textMesh.position.y = -22;
 
                 textMesh.rotation.x = 0;
                 textMesh.rotation.y = Math.PI * 2;
@@ -196,12 +198,12 @@
 
         function playFunSound()
         {
-            funSynth.triggerAttackRelease(funTones[Math.floor(Math.random() * 7)], "16n");
+            funSynth.triggerAttackRelease(funTones[Math.floor(Math.random() * 7)], "16n", Tone.context.currentTime);
         }
 
         function playScareSound()
         {
-            scareSynth.triggerAttackRelease(scareTones[Math.floor(Math.random() * 5)], "3n", "+0.05");
+            scareSynth.triggerAttackRelease(scareTones[Math.floor(Math.random() * 5)], "3n", Tone.context.currentTime);
         }
 
         function init()
@@ -221,7 +223,8 @@
 			renderPass = new THREE.RenderPass(scene, camera);
 			rgbPass = new THREE.ShaderPass(THREE.RGBShiftShader);
 			filmPass = new THREE.ShaderPass(THREE.FilmShader);
-			copyPass = new THREE.ShaderPass(THREE.CopyShader);
+            copyPass = new THREE.ShaderPass(THREE.CopyShader);
+            fxaaPass = new THREE.ShaderPass(THREE.FXAAShader);
 
 			//set shader uniforms
 			filmPass.uniforms.grayscale.value = 0;
@@ -262,6 +265,10 @@
                 camera.aspect = window.innerWidth / window.innerHeight;
 
                 camera.updateProjectionMatrix();
+
+                fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
+                fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
+
             })
         }
 
@@ -307,8 +314,13 @@
                 composer.addPass(rgbPass);
             }
 
-            composer.addPass(copyPass);
-            copyPass.renderToScreen = true;
+            const pixelRatio = renderer.getPixelRatio();
+
+            fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
+            fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
+
+            composer.addPass(fxaaPass);
+            fxaaPass.renderToScreen = true;
         }
 
         var animate = function () {
