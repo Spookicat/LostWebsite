@@ -1,3 +1,13 @@
+@font-face {
+    font-family: "Oswald Medium";
+    src: url(../fonts/Oswald-Medium.ttf);
+}
+
+@font-face {
+    font-family: "DOS";
+    src: url(../fonts/Perfect\ DOS\ VGA\ 437\ Win.ttf);
+}
+
 body {
     margin: 0;
     height: 100vh;
