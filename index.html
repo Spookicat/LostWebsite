@@ -24,7 +24,7 @@
 
     <div id="parent">
         <form id="mysteryform" autocomplete="off">
-            <input id="mysteriousbox" type="text" />
+            <input id="mysteriousbox" type="text" placeholder="heru eru"></input>
         </form>
     </div>
 
@@ -283,6 +283,8 @@
                 camera.aspect = window.innerWidth / window.innerHeight;
 
                 camera.updateProjectionMatrix();
+
+                const pixelRatio = renderer.getPixelRatio();
 
                 fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
                 fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
