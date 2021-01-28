@@ -24,7 +24,7 @@
 
     <div id="parent">
         <form id="mysteryform" autocomplete="off">
-            <input id="mysteriousbox" type="text" placeholder="heru eru"></input>
+            <input id="mysteriousbox" type="text"></input>
         </form>
     </div>
 
@@ -78,6 +78,7 @@
             if(Tone.context.state != 'running'){
                 Tone.start();
             }
+            Tone.setContext(new Tone.Context({ latencyHint : "playback" }))
             if(e.preventDefault) e.preventDefault();
             //document.getElementById("mysteriousbox").blur();
 
@@ -118,8 +119,10 @@
 
         if(form.attachEvent){
             form.attachEvent("submit", processText);
+            form.attachEvent("touchstart", processText);
         }   else{
             form.addEventListener("submit", processText);
+            form.addEventListener("touchstart", processText);
         }
 
         function displayResponse( textFont, scary, redirect, url )
@@ -250,7 +253,7 @@
             // init shader params
             rgbParams = {
                 show: false,
-                amount: 0.0014,
+                amount: 0.0017,
                 angle: 1
             };
 
