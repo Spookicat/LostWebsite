@@ -24,7 +24,7 @@
 
     <div id="parent">
         <form id="mysteryform" autocomplete="off">
-            <input id="mysteriousbox" type="text"></input>
+            <input id="mysteriousbox" type="text" placeholder="plz eru"></input>
         </form>
     </div>
 
@@ -119,10 +119,10 @@
 
         if(form.attachEvent){
             form.attachEvent("submit", processText);
-            form.attachEvent("touchstart", processText);
+            form.attachEvent("click touchstart", processText);
         }   else{
             form.addEventListener("submit", processText);
-            form.addEventListener("touchstart", processText);
+            form.addEventListener("click touchstart", processText);
         }
 
         function displayResponse( textFont, scary, redirect, url )
