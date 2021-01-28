@@ -24,7 +24,7 @@
 
     <div id="parent" action="processText">
         <form id="mysteryform" autocomplete="off">
-            <input id="mysteriousbox" type="text" placeholder="plz work"></input>
+            <input id="mysteriousbox" type="text" placeholder=":("></input>
         </form>
     </div>
 
@@ -71,6 +71,13 @@
         
         funSynth.chain(feedbackDelay, reverb, Tone.Destination);
         scareSynth.chain(crusher, distortion, reverb, EQ, Tone.Destination);
+
+        function checkKeyPress(e)
+        {
+            if (e.keyCode==13){
+                processText(e)
+            }
+        }
 
         function processText(e)
         {
@@ -119,10 +126,10 @@
 
         if(form.attachEvent){
             form.attachEvent("submit", processText);
-            form.attachEvent("click touchstart", processText);
+            form.attachEvent("onkeyup", checkKeyPress);
         }   else{
             form.addEventListener("submit", processText);
-            form.addEventListener("click touchstart", processText);
+            form.addEventListener("onkeyup", checkKeyPress);
         }
 
         function displayResponse( textFont, scary, redirect, url )
