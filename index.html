@@ -75,7 +75,8 @@
         function checkKeyPress(e)
         {
             if (e.keyCode==13){
-                processText(e)
+                processText(e);
+                console.log("CHECK");
             }
         }
 
@@ -126,10 +127,10 @@
 
         if(form.attachEvent){
             form.attachEvent("submit", processText);
-            form.attachEvent("onkeyup", checkKeyPress);
+            form.attachEvent("keyup", checkKeyPress);
         }   else{
             form.addEventListener("submit", processText);
-            form.addEventListener("onkeyup", checkKeyPress);
+            form.addEventListener("keyup", checkKeyPress);
         }
 
         function displayResponse( textFont, scary, redirect, url )
