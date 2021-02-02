@@ -4,9 +4,11 @@
     <title>I was lost once too</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon-32x32.png">
+    <link rel="icon" type="image/vnd.microsoft.icon" href="favicon.ico">
     <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css?family=Open+Sans">
-    <link rel="stylesheet" href="css/main.css">
+          href="https://fonts.googleapis.com/css?family=Open+Sans" />
+    <link rel="stylesheet" href="css/main.css" />
 </head>
 <body>
 
@@ -24,7 +26,7 @@
 
     <div id="parent">
         <form id="mysteryform" autocomplete="off" action="">
-            <input id="mysteriousbox" type="text" placeholder="I win, you damn iPad."></input>
+            <input id="mysteriousbox" type="text" ></input>
             <submit></submit>
         </form>
     </div>
@@ -87,7 +89,7 @@
             if(Tone.context.state != 'running'){
                 Tone.start();
             }
-            Tone.setContext(new Tone.Context({ latencyHint : "playback" }))
+            Tone.setContext(new Tone.Context({ latencyHint : 1  }))
             if(e.preventDefault) e.preventDefault();
             document.getElementById("mysteriousbox").blur();
 
