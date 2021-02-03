@@ -70,7 +70,7 @@
         feedbackDelay.set( {wet: 0.5} );
         reverb.set( {wet: 0.7} );
         
-        scareSynth.set( {volume : -18, detune: -3, voice1: {detune: -5}, voice2: {detune: -9}} );
+        scareSynth.set( {volume : -19, detune: -3, voice1: {detune: -5}, voice2: {detune: -9}} );
         
         funSynth.chain(feedbackDelay, reverb, Tone.Destination);
         scareSynth.chain(crusher, distortion, reverb, EQ, Tone.Destination);
@@ -138,7 +138,58 @@
 
         function displayResponse( textFont, scary, redirect, url )
         {
-            var loader = new THREE.FontLoader();
+            var canvas = document.createElement("canvas");
+            canvas.width = 4096;
+            canvas.height = 256;
+            var ctx = canvas.getContext("2d");
+            if(scary)
+            {
+                enableShaders();
+                ctx.font = "32pt DOS font";
+                ctx.fillStyle = "rgba(255,255,0,1)";
+            }
+            else
+            {
+                disableShaders();
+                ctx.font = "32pt Oswald Medium";
+                ctx.fillStyle = "rgba(255,255,255,1)";
+            }
+            ctx.textAlign = "center";
+            ctx.fillText(displayText, 2048, 190);
+            console.log(ctx);
+
+            var tex = new THREE.CanvasTexture(canvas);
+            tex.anisotrophy = renderer.capabilities.getMaxAnisotropy();
+            //tex.needsUpdate = true;
+            
+            var spriteMat = new THREE.MeshBasicMaterial({
+                map: tex,
+                side: THREE.DoubleSide
+            });
+            spriteMat.transparent = true;
+
+            var sprite = new THREE.Mesh(
+                new THREE.PlaneGeometry(canvas.width, canvas.height),
+                spriteMat
+            );
+
+            sprite.name = "text";
+            //.position
+            sprite.position.z = -170;
+            sprite.position.x = 0;
+            sprite.position.y = -22;
+
+            sprite.rotation.x = 0;
+            sprite.rotation.y = Math.PI * 2;
+            //sprite.material.transparent = true;
+            //sprite.material.opacity = 1;
+            //sprite.scale.set(1, 1, 1);
+
+            scene.add(sprite);
+
+            animateText(sprite, scary, redirect, url);
+            
+            /*var loader = new THREE.FontLoader();
             loader.load(textFont, function (font) {
 
                 var textGeo = new THREE.TextGeometry(displayText, {
@@ -178,7 +229,7 @@
                 scene.add(textMesh);
 
                 animateText(textMesh, scary, redirect, url);
-            });
+            });*/
         }
 
         function animateText(textMesh, scary, redirect, url)
@@ -242,8 +293,8 @@
         {
             // init camera
             scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-            camera.position.z = 5;
+            camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 10000 );
+            camera.position.z = 500;
 
             // init renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -350,11 +401,11 @@
 
             const pixelRatio = renderer.getPixelRatio();
 
-            fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
-            fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
+            //fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
+            //fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
 
-            composer.addPass(fxaaPass);
-            fxaaPass.renderToScreen = true;
+            composer.addPass(copyPass);
+            copyPass.renderToScreen = true;
         }
 
         var animate = function () {

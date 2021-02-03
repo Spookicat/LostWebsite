@@ -4,8 +4,8 @@
 }
 
 @font-face {
-    font-family: "DOS";
-    src: url(../fonts/Perfect\ DOS\ VGA\ 437\ Win.ttf);
+    font-family: "DOS font";
+    src: url(../fonts/PerfectDOSVGA437Win.ttf);
 }
 
 body {
