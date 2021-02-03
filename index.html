@@ -8,6 +8,7 @@
     <link rel="icon" type="image/vnd.microsoft.icon" href="favicon.ico">
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Open+Sans" />
+          
     <link rel="stylesheet" href="css/main.css" />
 </head>
 <body>
@@ -81,6 +82,7 @@
                 processText(e);
                 console.log("CHECK");
             }
+            return false;
         }
 
         function processText(e)
@@ -123,8 +125,15 @@
                 }
                 displayResponse(font, scary, redirect, url);
             }
+
             return false;
         }
+
+
+        /*      -----------------------------------------------------
+                |                     Listeners                     |
+                -----------------------------------------------------
+                Adding global listeners for initializing the browser       */
 
         var form = document.getElementById('mysteryform');
 
@@ -135,6 +144,30 @@
             form.addEventListener("submit", processText);
             form.addEventListener("keyup", checkKeyPress);
         }
+
+        ;(function () {
+
+            // Native behavior
+            if ('fonts' in document) {
+                document.fonts.load('1em DOS font').then(function () {
+                    var expires = new Date(+new Date() + (7 * 24 * 60 * 60 * 1000)).toUTCString();
+                    document.cookie = 'fontsLoaded=true; expires=' + expires;
+                    document.documentElement.className += ' fonts-loaded';
+                });
+
+                document.fonts.load('1em Oswald Medium').then(function () {
+                    var expires = new Date(+new Date() + (7 * 24 * 60 * 60 * 1000)).toUTCString();
+                    document.cookie = 'fontsLoaded=true; expires=' + expires;
+                    document.documentElement.className += ' fonts-loaded';
+                });
+            }
+
+            // Fallback for IE/Edge
+            else {
+                // Use fontFaceObserver
+            }
+
+        })();
 
         function displayResponse( textFont, scary, redirect, url )
         {
