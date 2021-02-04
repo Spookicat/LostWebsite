@@ -54,6 +54,13 @@ input[type=text]:focus{
     justify-content: center;
 }
 
+@media screen{
+    #parent {
+        height: 100%;
+        width: 100%;
+    }
+}
+
 .fonts-loaded body{
     font-family: "DOS font", "Oswald Medium";
 }
