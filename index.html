@@ -41,7 +41,6 @@
         var renderPass, copyPass;
         var fxaaPass;
 
-        var tex = new THREE.CanvasTexture();
         var maxAnisotropy;
 
         var submitting;
@@ -194,10 +193,7 @@
             ctx.fillText(displayText, 2048, 190);
             //console.log(ctx);
 
-            tex = new THREE.CanvasTexture(canvas);
-            //tex.minFilter = THREE.LinearFilter;
-            tex.magFilter = THREE.NearestFilter;
-            //tex.generateMipMaps = false;
+            var tex = new THREE.CanvasTexture(canvas);
             tex.anisotropy = maxAnisotropy;
             tex.needsUpdate = true;
             
@@ -220,9 +216,6 @@
 
             sprite.rotation.x = 0;
             sprite.rotation.y = Math.PI * 2;
-            //sprite.material.transparent = true;
-            //sprite.material.opacity = 1;
-            //sprite.scale.set(1, 1, 1);
 
             scene.add(sprite);
 
@@ -385,14 +378,13 @@
             onParamsChange();
 
             window.addEventListener('resize', () => {
-                renderer.setSize(window.innerWidth, window.innerHeight);
                 camera.aspect = window.innerWidth / window.innerHeight;
-
                 camera.updateProjectionMatrix();
 
-                tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                composer.setSize(window.innerWidth, window.innerHeight);
 
-                const pixelRatio = renderer.getPixelRatio();
+                //const pixelRatio = renderer.getPixelRatio();
 
                 //fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
                 //fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
@@ -430,7 +422,6 @@
         function onToggleShaders() {
 
             //Add Shader Passes to Composer
-            //order is important 
             composer = new THREE.EffectComposer(renderer);
             composer.addPass(renderPass);
 
@@ -461,6 +452,7 @@
         }
 
         function render() {
+            //renderer.render(scene, camera);
             composer.render(0.1);
         }
     
