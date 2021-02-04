@@ -41,6 +41,9 @@
         var renderPass, copyPass;
         var fxaaPass;
 
+        var tex = new THREE.CanvasTexture();
+        var maxAnisotropy;
+
         var submitting;
         var displayText;
 
@@ -189,11 +192,14 @@
             }
             ctx.textAlign = "center";
             ctx.fillText(displayText, 2048, 190);
-            console.log(ctx);
+            //console.log(ctx);
 
-            var tex = new THREE.CanvasTexture(canvas);
-            tex.anisotrophy = renderer.capabilities.getMaxAnisotropy();
-            //tex.needsUpdate = true;
+            tex = new THREE.CanvasTexture(canvas);
+            //tex.minFilter = THREE.LinearFilter;
+            tex.magFilter = THREE.NearestFilter;
+            //tex.generateMipMaps = false;
+            tex.anisotropy = maxAnisotropy;
+            tex.needsUpdate = true;
             
             var spriteMat = new THREE.MeshBasicMaterial({
                 map: tex,
@@ -280,7 +286,7 @@
             {
                 var newX = Math.floor(Math.random() * 2000) - 1000;
                 var newY = Math.floor(Math.random() * 500);
-                var newZ = Math.floor(Math.random() * 1000) - 1000;
+                var newZ = Math.floor(Math.random() * 1000) - 1500;
 
                 playFunSound();
             }
@@ -334,6 +340,8 @@
             renderer.setSize( window.innerWidth, window.innerHeight );
             document.body.appendChild( renderer.domElement );
 
+            maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+
             //POST PROCESSING
 			//Create Shader Passes
 			renderPass = new THREE.RenderPass(scene, camera);
@@ -382,10 +390,12 @@
 
                 camera.updateProjectionMatrix();
 
+                tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
                 const pixelRatio = renderer.getPixelRatio();
 
-                fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
-                fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
+                //fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
+                //fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
 
             })
         }
@@ -443,7 +453,7 @@
 
         var animate = function () {
             shaderTime += 0.1;
-			filmPass.uniforms['time'].value = shaderTime;
+            filmPass.uniforms['time'].value = shaderTime;
 
             requestAnimationFrame( animate );
 
