@@ -141,9 +141,16 @@
         if(form.attachEvent){
             form.attachEvent("submit", processText);
             form.attachEvent("keyup", checkKeyPress);
+            form.attachEvent("orientationchange", orientationChange);
         }   else{
             form.addEventListener("submit", processText);
             form.addEventListener("keyup", checkKeyPress);
+            form.addEventListener("orientationchange", orientationChange);
+        }
+
+        function orientationChange()
+        {
+            window.location.reload();
         }
 
         ;(function () {
