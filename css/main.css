@@ -44,13 +44,14 @@ input[type=text]:focus{
 }
 
 #parent {
-    background-color: #00FF00;
+    stroke: #00FF00;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 #mysteryform {
+    stroke: #00FF00;
     display: flex;
     align-items: center;
     justify-content: center;
